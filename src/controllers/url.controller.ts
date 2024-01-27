@@ -32,11 +32,16 @@ const show = async (
   response: Response
 ) => {
   const { userId, urlId } = request.params;
-  return response.json({
-    userId,
-    urlId,
-    message: 'Should show a URL 👀'
-  });
+
+  const query: QueryConfig = {
+    text: ` SELECT * FROM urls WHERE urls.id = $1 AND urls.user_id = $2;`,
+    values: [urlId, userId]
+  };
+
+  const queryResult = await pool.query<URL>(query);
+  const url = queryResult.rows[0];
+
+  return response.json(url);
 };
 
 const store = async (
