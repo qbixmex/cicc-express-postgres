@@ -1,14 +1,30 @@
-import { Request, Response } from "express";
+import { Request, Response } from 'express';
+import { QueryConfig } from 'pg';
+import { pool } from "../db/config";
+
+type URL = {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  createdAt: Date,
+  updatedAt: Date | null,
+};
 
 const list = async (
   request: Request<{ userId: string }>,
   response: Response
 ) => {
   const { userId } = request.params;
-  return response.json({
-    userId,
-    message: 'List all users 🥷'
-  });
+
+  const queryResult = await pool.query<URL>(`
+    SELECT * FROM urls
+    WHERE user_id = $1;
+  `, [userId]);
+
+  const urls = queryResult.rows;
+
+  return response.json(urls);
 };
 
 const show = async (
