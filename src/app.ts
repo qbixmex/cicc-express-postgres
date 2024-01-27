@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import rootRoutes from './routes/root.routes';
+import userRoutes from './routes/user.routes';
 import urlRoutes from './routes/url.routes';
 
 dotenv.config();
@@ -11,6 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/', rootRoutes);
+app.use('/api/v1', userRoutes);
 app.use('/api/v1', urlRoutes);
 
 export default app;
