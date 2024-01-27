@@ -4,11 +4,12 @@ import { pool } from "../db/config";
 
 type URL = {
   id: number;
-  name: string;
-  email: string;
-  password: string;
-  createdAt: Date,
-  updatedAt: Date | null,
+  user_id: string;
+  original_url: string;
+  short_url: Date;
+  counter: number;
+  created_at: Date;
+  updated_at: Date | null;
 };
 
 const list = async (
@@ -34,7 +35,7 @@ const show = async (
   const { userId, urlId } = request.params;
 
   const query: QueryConfig = {
-    text: ` SELECT * FROM urls WHERE urls.id = $1 AND urls.user_id = $2;`,
+    text: `SELECT * FROM urls WHERE urls.id = $1 AND urls.user_id = $2;`,
     values: [urlId, userId]
   };
 
@@ -44,15 +45,27 @@ const show = async (
   return response.json(url);
 };
 
+type RequestBodyProps = Pick<URL, 'original_url' | 'short_url'>;
+
 const store = async (
-  request: Request<{ userId: string }>,
+  request: Request<{ userId: string }, {}, RequestBodyProps>,
   response: Response
 ) => {
   const { userId } = request.params;
-  return response.json({
-    userId,
-    message: 'Should store a new URL 💾'
-  });
+  const { original_url, short_url } = request.body;
+
+  const query: QueryConfig = {
+    text: `INSERT INTO urls (user_id, original_url, short_url)
+      VALUES ($1, $2, $3)
+      RETURNING *;
+    `,
+    values: [userId, original_url, short_url]
+  };
+
+  const queryResult = await pool.query<URL>(query);
+  const url = queryResult.rows[0];
+
+  return response.json(url);
 };
 
 const update = async (
