@@ -1,11 +1,11 @@
 {
   "name": "day-05-practice",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A short demo of how to handle postgres with express",
   "main": "server.js",
   "scripts": {
     "dev": "tsnd --inspect --clear -- src/server.ts",
-    "db:reset": "psql -U postgres -d projects < ./src/db/migrations/init.sql && psql -U postgres -d projects < ./src/db/seed/seed.sql",
+    "db:reset": "psql -U postgres -d projects < ./src/db/migrations/init.sql && psql -U postgres -d projects < ./src/db/seeds/users.seeds.sql && psql -U postgres -d projects < ./src/db/seeds/urls.seeds.sql",
     "preview": "node ./dist/index.js"
   },
   "keywords": [
