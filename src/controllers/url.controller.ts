@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { QueryConfig } from 'pg';
-import { pool } from "../db/config";
+import { client, pool } from "../db/config";
 
 type URL = {
   id: number;
@@ -98,14 +98,31 @@ const update = async (
 
 const destroy = async (
   request: Request<{ userId: string, urlId: string }>,
-  response: Response
+  response: Response<{ id: string } | { error: string }>
 ) => {
   const { userId, urlId } = request.params;
-  return response.json({
-    userId,
-    urlId,
-    message: 'Should delete an URL 🗑️'
-  });
+
+  await client.query("BEGIN");
+
+  const query: QueryConfig = {
+    text: `DELETE FROM urls
+      WHERE user_id = $1 AND id = $2
+      RETURNING id;
+    `,
+    values: [userId, urlId]
+  };
+
+  const queryResponse = await client.query(query);
+
+  if (queryResponse.rowCount === 0) {
+    await client.query("ROLLBACK");
+    return response.status(500).json({ error: "Something went wrong 🥺❗️" });
+  }
+
+  if (queryResponse.rows[0].id.toString() === urlId && queryResponse.rowCount === 1) {
+    await client.query("COMMIT");
+    return response.json(queryResponse.rows[0]);
+  }
 };
 
 export default {
