@@ -1,6 +1,6 @@
 {
   "name": "day-05-practice",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A short demo of how to handle postgres with express",
   "main": "server.js",
   "scripts": {

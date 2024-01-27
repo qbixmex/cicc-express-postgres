@@ -45,11 +45,11 @@ const show = async (
   return response.json(url);
 };
 
-type RequestBodyProps = Pick<URL, 'original_url' | 'short_url'>;
+type createBodyProps = Pick<URL, 'original_url' | 'short_url'>;
 
 const store = async (
-  request: Request<{ userId: string }, {}, RequestBodyProps>,
-  response: Response
+  request: Request<{ userId: string }, {}, createBodyProps>,
+  response: Response<URL>
 ) => {
   const { userId } = request.params;
   const { original_url, short_url } = request.body;
@@ -68,16 +68,32 @@ const store = async (
   return response.json(url);
 };
 
+type updateBodyProps = Pick<URL, 'original_url' | 'short_url'>;
+
 const update = async (
-  request: Request<{ userId: string, urlId: string }>,
-  response: Response
+  request: Request<{ userId: string, urlId: string }, {}, updateBodyProps>,
+  response: Response<URL>
 ) => {
   const { userId, urlId } = request.params;
-  return response.json({
-    userId,
-    urlId,
-    message: 'Should update an URL 💾'
-  });
+  const { original_url, short_url } = request.body;
+
+  const query: QueryConfig = {
+    text: `UPDATE urls
+      SET
+        user_id = $1,
+        original_url = $3,
+        short_url = $4,
+        updated_at = NOW()
+      WHERE id = $2
+      RETURNING *;
+    `,
+    values: [userId, urlId, original_url, short_url]
+  };
+
+  const queryResult = await pool.query<URL>(query);
+  const url = queryResult.rows[0];
+
+  return response.json(url);
 };
 
 const destroy = async (
